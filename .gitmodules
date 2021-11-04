@@ -1,0 +1,15 @@
+[submodule "extlib/r-index"]
+	path = extlib/r-index
+	url = https://github.com/nicolaprezza/r-index
+[submodule "extlib/tlx"]
+	path = extlib/tlx
+	url = https://github.com/tlx/tlx
+[submodule "extlib/libsais"]
+	path = extlib/libsais
+	url = https://github.com/IlyaGrebnov/libsais
+[submodule "extlib/libdivsufsort"]
+	path = extlib/libdivsufsort
+	url = https://github.com/kurpicz/libdivsufsort
+[submodule "extlib/malloc_count"]
+	path = extlib/malloc_count
+	url = https://github.com/bingmann/malloc_count
