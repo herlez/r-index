@@ -1,11 +1,14 @@
 #pragma once
 
 #include <array>
+#include <queries/query_support.hpp>
 #include <string>
 #include <vector>
+#include <wx_pc.hpp>
 
 #include "bwt.hpp"
 #include "util/timer.hpp"
+
 namespace alx {
 template <typename t_word = size_t>
 class r_index {
@@ -39,6 +42,10 @@ class r_index {
   std::vector<size_t> m_run_starts;
   std::vector<unsigned char> m_run_letters;
   std::array<std::vector<size_t>, 256> m_run_lengths;
+  //Dummy wavelet matrix, because default constructor is private
+  wavelet_structure m_wm = wx_pc<uint8_t, false>::compute(m_run_letters.data(), 0, 0);
+  query_support m_qs;
+  
 
   void build_structure(alx::bwt const& input_bwt) {
     std::cout << "DETAILS r-index";
@@ -61,10 +68,24 @@ class r_index {
       run_start = run_end;
     }
 
+    // auto max_char = reduce_alphabet(input_bwt.last_row);
+    // uint64_t levels = levels_for_max_char(max_char);
+    auto vec = std::vector<uint8_t>(input_bwt.last_row.begin(), input_bwt.last_row.end());
+    size_t levels = 8;
+
+    //wavelet_structure m_wm = wx_pc<uint8_t, false>::compute(vec.data(), vec.size(), levels);
+    m_wm = wx_pc<uint8_t, false>::compute(vec.data(), vec.size(), levels);
+    //std::unique_ptr<wavelet_structure> m_wm = std::unique_ptr<wavelet_structure>(ws);
+    //m_wm = 
+    std::vector<size_t> symbol_counts(256, 0);
+    //std::unique_ptr<query_support<>> = query_support(m_wm);
+    
+  
+
     std::cout << " num_runs=" << m_run_starts.size();
     std::cout << " time_index=" << timer.get() << '\n';
-    //std::cout << "Runs   " << m_run_starts << "\n";
-    //std::cout << "Run L: " << m_run_letters << "\n";
+    // std::cout << "Runs   " << m_run_starts << "\n";
+    // std::cout << "Run L: " << m_run_letters << "\n";
   }
 };
 }  // namespace alx

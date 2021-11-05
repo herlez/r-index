@@ -3,7 +3,7 @@ project(r-index_seq)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(bench benchmark.cpp)
-target_compile_options(bench PRIVATE -Wall -Wextra -pedantic -O3) #-Winline -save-temps #-Werror
+target_compile_options(bench PRIVATE -Wall -Wextra -pedantic -O3 -DNDEBUG) #-Winline -save-temps #-Werror
 target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_executable(bwt bench_bwt.cpp)
@@ -51,7 +51,11 @@ target_include_directories(bwt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/malloc_
 target_link_libraries(bwt malloc_count -ldl)
 
 #include divsufsort
-
-#add_subdirectory(extlib/libdivsufsort)
 target_link_libraries(bench divsufsort64)
 target_link_libraries(bwt divsufsort64)
+
+#include pwm
+target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/pwm/include)
+target_link_libraries(bench -fopenmp)
+
+

@@ -13,3 +13,6 @@
 [submodule "extlib/malloc_count"]
 	path = extlib/malloc_count
 	url = https://github.com/bingmann/malloc_count
+[submodule "extlib/pwm"]
+	path = extlib/pwm
+	url = https://github.com/kurpicz/pwm
