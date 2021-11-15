@@ -8,6 +8,7 @@
 #include "r-index.hpp"
 #include "util/io.hpp"
 #include "util/timer.hpp"
+#include "util/spacer.hpp"
 
 class index_benchmark {
  public:
@@ -34,19 +35,21 @@ class index_benchmark {
 
     // Load bwt
     bwt_path = text_path + ".bwt";
+    /*
     alx::bwt bwt;
     if (index_herlez) {
       bwt = alx::io::load_bwt(bwt_path, text);
-      if (bwt.to_text() != text) {
-        std::cout << "BWT WRONG\n";
-        std::cout << "T:  " << text.substr(0, 30) << "\n"
-                  << "L:  " << bwt.last_row.substr(0, 30) << " (" << bwt.primary_index << ")\n"
-                  << "T': " << bwt.to_text().substr(0, 30) << "\n";
+      // if (bwt.to_text() != text) {
+      //   std::cout << "BWT WRONG\n";
+      //   std::cout << "T:  " << text.substr(0, 30) << "\n"
+      //             << "L:  " << bwt.last_row.substr(0, 30) << " (" << bwt.primary_index << ")\n"
+      //             << "T': " << bwt.to_text().substr(0, 30) << "\n";
       }
     }
+    */
 
     // Load Queries
-    std::vector<std::string> queries = alx::io::generate_queries(text, size_t{1} << 8, 20);
+    std::vector<std::string> queries = alx::io::generate_queries(text, size_t{1} << 20, 10);
     // queries_path = text_path + "queries/" + text_name;
     // std::vector<std::string> queries = load_queries(queries_path);
 
@@ -57,20 +60,25 @@ class index_benchmark {
       t_index r_index;
 
       alx::benchutil::timer timer;
+      alx::benchutil::spacer spacer;
 
       if (std::filesystem::exists(index_path + index_suffix)) {
         r_index.load_from_file(index_path + index_suffix);
         std::cout << "#READ index from=" << index_path + index_suffix << " time=" << timer.get() << '\n';
       } else {
         if constexpr (index_herlez) {
-          // std::cout << bwt.last_row.substr(0, 30) << "\n";
-          // std::cout << bwt.to_text().substr(0, 30) << "\n";
+          //alx::bwt bwt = alx::io::load_bwt(bwt_path, text);
+          alx::bwt bwt(text);
           r_index = t_index(bwt);
+          std::cout << " nun_runs=" << r_index.num_runs();
         } else {
           r_index = t_index(text);
+          std::cout << " nun_runs=" << r_index.number_of_runs();
         }
         std::cout << "RESULT algo=" << algo
                   << " build_time=" << timer.get_and_reset()
+                  << " mem_peak=" << spacer.get_peak()
+                  << " mem_ds=" << spacer.get()
                   << '\n';
         r_index.save_to_file(index_path);
         std::cout << "#WRITE index to=" << index_path + index_suffix << " time=" << timer.get_and_reset() << '\n';
@@ -81,7 +89,8 @@ class index_benchmark {
       std::vector<ulint> count_results;
       timer.reset();
       for (std::string& q : queries) {
-        count_results.push_back(r_index.occ(q));
+        auto result = r_index.occ(q);
+        count_results.push_back(result);
       }
       std::cout << " count_time=" << timer.get()
                 << " count_sum=" << accumulate(count_results.begin(), count_results.end(), 0);

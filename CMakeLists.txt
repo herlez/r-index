@@ -10,6 +10,9 @@ add_executable(bwt bench_bwt.cpp)
 target_compile_options(bwt PRIVATE -Wall -Wextra -pedantic -O3) #-Winline -save-temps #-Werror
 target_include_directories(bwt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+add_executable(wt bench_wt.cpp)
+target_compile_options(wt PRIVATE -Wall -Wextra -pedantic -O3) #-Winline -save-temps #-Werror
+target_include_directories(wt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 #include prezza's r-index
 target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/r-index/internal)
@@ -17,6 +20,7 @@ target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/r-ind
 #include libsais
 target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/libsais/src)
 target_include_directories(bwt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/libsais/src)
+target_include_directories(wt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/libsais/src)
 
 add_library(libsais64
   extlib/libsais/src/libsais64.c
@@ -25,6 +29,7 @@ add_library(libsais64
 target_include_directories(libsais64 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/r-index/internal)
 target_link_libraries(bench libsais64)
 target_link_libraries(bwt libsais64)
+target_link_libraries(wt libsais64)
 
 
 #include tlx
@@ -36,6 +41,8 @@ add_library(tlx
 )
 target_include_directories(tlx PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/tlx/)
 target_link_libraries(bench tlx)
+target_include_directories(wt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/tlx/)
+target_link_libraries(wt tlx)
 
 
 #SDSL
@@ -49,6 +56,8 @@ target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/mallo
 target_link_libraries(bench malloc_count -ldl)
 target_include_directories(bwt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/malloc_count)
 target_link_libraries(bwt malloc_count -ldl)
+target_include_directories(wt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/malloc_count)
+target_link_libraries(wt malloc_count -ldl)
 
 #include divsufsort
 target_link_libraries(bench divsufsort64)
