@@ -54,6 +54,8 @@ class index_benchmark {
     // std::vector<std::string> queries = load_queries(queries_path);
 
     {
+      std::cout << "RESULT algo=" << algo;
+
       // Build r-index
       std::string index_path = path + "index/" + text_name;
       std::string index_suffix = (algo == "prezza" ? ".ri" : ".rix");
@@ -75,8 +77,8 @@ class index_benchmark {
           r_index = t_index(text);
           std::cout << " nun_runs=" << r_index.number_of_runs();
         }
-        std::cout << "RESULT algo=" << algo
-                  << " build_time=" << timer.get_and_reset()
+        
+        std::cout << " build_time=" << timer.get_and_reset()
                   << " mem_peak=" << spacer.get_peak()
                   << " mem_ds=" << spacer.get()
                   << '\n';
