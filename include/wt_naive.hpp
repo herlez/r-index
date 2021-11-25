@@ -17,8 +17,8 @@ class wavelet_tree {
  private:
   static constexpr uint64_t c_alphabet_size = 256;
   std::vector<uint8_t> m_alphabet;
-  std::vector<BitVector*> m_bvs;
-  std::vector<Rank*> m_bvrs;
+  std::vector<BitVector> m_bvs;
+  std::vector<Rank> m_bvrs;
 
   struct package {
     std::vector<uint8_t> text_in_node;
@@ -84,7 +84,7 @@ class wavelet_tree {
 
     size_t levels_needed = 1 + log2_of_uint64(m_alphabet.size() - 1);
     for (size_t level = 0; level < levels_needed; ++level) {
-      m_bvs.push_back(new BitVector(text.size()));
+      m_bvs.push_back(BitVector(text.size()));
       size_t write_position = 0;
       std::vector<package> next_packages;
 
@@ -95,10 +95,10 @@ class wavelet_tree {
         package right_package{middle_position, p.sigma_right};
         for (auto c : p.text_in_node) {
           if (c < middle_sigma) {
-            m_bvs[level]->set_bit(write_position++, 0);
+            m_bvs[level].set_bit(write_position++, 0);
             left_package.text_in_node.push_back(c);
           } else {
-            m_bvs[level]->set_bit(write_position++, 1);
+            m_bvs[level].set_bit(write_position++, 1);
             right_package.text_in_node.push_back(c);
           }
         }
@@ -111,8 +111,8 @@ class wavelet_tree {
       // std::swap(packages, next_packages);
     }
     // Build rank data structure for bit vectors
-    for (auto& bvs : m_bvs) {
-      m_bvrs.push_back(new Rank(*bvs));
+    for (auto const& bvs : m_bvs) {
+      m_bvrs.push_back(Rank(bvs));
     }
   }
 
@@ -120,23 +120,23 @@ class wavelet_tree {
     uint8_t alphabet_from = 0;
     uint8_t alphabet_to = m_alphabet.size();
     size_t left = 0;                  // inclusive
-    size_t right = m_bvs[0]->size();  // exclusive
+    size_t right = m_bvs[0].size();  // exclusive
     size_t pos_in_next_level = pos;
 
     for (size_t level = 0; level < m_bvrs.size(); ++level) {
-      size_t bit = m_bvs[level]->get_bit(pos_in_next_level);
+      size_t bit = m_bvs[level].get_bit(pos_in_next_level);
       if (!bit) {
         alphabet_to = (alphabet_from + alphabet_to) / 2;
-        size_t ones_in_node = (left == 0) ? m_bvrs[level]->rank1(right - 1) : m_bvrs[level]->rank1(right - 1) - m_bvrs[level]->rank1(left - 1);
+        size_t ones_in_node = (left == 0) ? m_bvrs[level].rank1(right - 1) : m_bvrs[level].rank1(right - 1) - m_bvrs[level].rank1(left - 1);
         // size_t rank0_in_node = (left == 0) ? m_bvrs[level]->rank0(pos_in_next_level) : m_bvrs[level]->rank0(pos_in_next_level) - m_bvrs[level]->rank0(left - 1);
-        size_t rank1_in_node = (left == 0) ? m_bvrs[level]->rank1(pos_in_next_level) : m_bvrs[level]->rank1(pos_in_next_level) - m_bvrs[level]->rank1(left - 1);
+        size_t rank1_in_node = (left == 0) ? m_bvrs[level].rank1(pos_in_next_level) : m_bvrs[level].rank1(pos_in_next_level) - m_bvrs[level].rank1(left - 1);
         right -= ones_in_node;
         // was delted before: pos_in_next_level = left + (rank0_in_node - 1);
         pos_in_next_level -= rank1_in_node;
       } else {
         alphabet_from = (alphabet_from + alphabet_to) / 2;
-        size_t zeroes_in_node = (left == 0) ? m_bvrs[level]->rank0(right - 1) : m_bvrs[level]->rank0(right - 1) - m_bvrs[level]->rank0(left - 1);
-        size_t rank1_in_node = (left == 0) ? m_bvrs[level]->rank1(pos_in_next_level) : m_bvrs[level]->rank1(pos_in_next_level) - m_bvrs[level]->rank1(left - 1);
+        size_t zeroes_in_node = (left == 0) ? m_bvrs[level].rank0(right - 1) : m_bvrs[level].rank0(right - 1) - m_bvrs[level].rank0(left - 1);
+        size_t rank1_in_node = (left == 0) ? m_bvrs[level].rank1(pos_in_next_level) : m_bvrs[level].rank1(pos_in_next_level) - m_bvrs[level].rank1(left - 1);
         left += zeroes_in_node;
         pos_in_next_level = left + (rank1_in_node - 1);
       }
@@ -147,7 +147,7 @@ class wavelet_tree {
 
   size_t rank(size_t pos, char c, bool debug = false) {
     size_t left = 0;                  // inclusive
-    size_t right = m_bvs[0]->size();  // exclusive
+    size_t right = m_bvs[0].size();  // exclusive
     size_t pos_in_next_level = pos;
     uint8_t code_c = navigate_c(c);
 
@@ -166,15 +166,15 @@ class wavelet_tree {
       }
 
       if (!bit) {
-        size_t ones_in_node = (left == 0) ? m_bvrs[level]->rank1(right - 1) : m_bvrs[level]->rank1(right - 1) - m_bvrs[level]->rank1(left - 1);
-        // size_t rank0_in_node = (left == 0) ? m_bvrs[level]->rank0(pos_in_next_level) : m_bvrs[level]->rank0(pos_in_next_level) - m_bvrs[level]->rank0(left - 1);
-        size_t rank1_in_node = (left == 0) ? m_bvrs[level]->rank1(pos_in_next_level) : m_bvrs[level]->rank1(pos_in_next_level) - m_bvrs[level]->rank1(left - 1);
+        size_t ones_in_node = (left == 0) ? m_bvrs[level].rank1(right - 1) : m_bvrs[level].rank1(right - 1) - m_bvrs[level].rank1(left - 1);
+        // size_t rank0_in_node = (left == 0) ? m_bvrs[level].rank0(pos_in_next_level) : m_bvrs[level].rank0(pos_in_next_level) - m_bvrs[level].rank0(left - 1);
+        size_t rank1_in_node = (left == 0) ? m_bvrs[level].rank1(pos_in_next_level) : m_bvrs[level].rank1(pos_in_next_level) - m_bvrs[level].rank1(left - 1);
         right -= ones_in_node;
         // was delted before: pos_in_next_level = left + (rank0_in_node - 1);
         pos_in_next_level -= rank1_in_node;
       } else {
-        size_t zeroes_in_node = (left == 0) ? m_bvrs[level]->rank0(right - 1) : m_bvrs[level]->rank0(right - 1) - m_bvrs[level]->rank0(left - 1);
-        size_t rank1_in_node = (left == 0) ? m_bvrs[level]->rank1(pos_in_next_level) : m_bvrs[level]->rank1(pos_in_next_level) - m_bvrs[level]->rank1(left - 1);
+        size_t zeroes_in_node = (left == 0) ? m_bvrs[level].rank0(right - 1) : m_bvrs[level].rank0(right - 1) - m_bvrs[level].rank0(left - 1);
+        size_t rank1_in_node = (left == 0) ? m_bvrs[level].rank1(pos_in_next_level) : m_bvrs[level].rank1(pos_in_next_level) - m_bvrs[level].rank1(left - 1);
         left += zeroes_in_node;
         pos_in_next_level = left + (rank1_in_node - 1);
       }
@@ -195,10 +195,10 @@ class wavelet_tree {
     for (auto c : m_alphabet) {
       std::cout << std::hex << "0x" << size_t{c} << ", ";
     }
-    std::cout << "\nLevels: " << m_bvs.size() << " Width: " << std::dec << m_bvs[0]->size() << "\n";
-    for (auto bv : m_bvs) {
-      for (size_t i = 0; i < std::min(bv[0].size(), max_symbols); ++i) {
-        std::cout << bv->get_bit(i);
+    std::cout << "\nLevels: " << m_bvs.size() << " Width: " << std::dec << m_bvs[0].size() << "\n";
+    for (BitVector bv : m_bvs) {
+      for (size_t i = 0; i < std::min(bv.size(), max_symbols); ++i) {
+        std::cout << bv.get_bit(i);
       }
       std::cout << '\n';
     }

@@ -72,10 +72,10 @@ class index_benchmark {
           //alx::bwt bwt = alx::io::load_bwt(bwt_path, text);
           alx::bwt bwt(text);
           r_index = t_index(bwt);
-          std::cout << " nun_runs=" << r_index.num_runs();
+          std::cout << " num_runs=" << r_index.num_runs();
         } else {
           r_index = t_index(text);
-          std::cout << " nun_runs=" << r_index.number_of_runs();
+          std::cout << " num_runs=" << r_index.number_of_runs();
         }
         
         std::cout << " build_time=" << timer.get_and_reset()

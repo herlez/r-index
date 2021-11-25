@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 project(r-index_seq)
 set(CMAKE_CXX_STANDARD 20)
 
+
 add_executable(bench benchmark.cpp)
 target_compile_options(bench PRIVATE -Wall -Wextra -pedantic -O3 -DNDEBUG) #-Winline -save-temps #-Werror
 target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -31,6 +32,16 @@ target_link_libraries(bench libsais64)
 target_link_libraries(bwt libsais64)
 target_link_libraries(wt libsais64)
 
+#include tdc
+target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/tdc/include)
+add_library(
+  tdc_pred
+  extlib/tdc/src/pred/index.cpp
+  extlib/tdc/src/vec/int_vector.cpp
+  extlib/tdc/src/vec/allocate.cpp
+) 
+target_include_directories(tdc_pred PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/tdc/include)
+target_link_libraries(bench tdc_pred)
 
 #include tlx
 target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/tlx/tlx)
@@ -67,4 +78,5 @@ target_link_libraries(bwt divsufsort64)
 target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/pwm/include)
 target_link_libraries(bench -fopenmp)
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
 

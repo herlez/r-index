@@ -16,3 +16,6 @@
 [submodule "extlib/pwm"]
 	path = extlib/pwm
 	url = https://github.com/kurpicz/pwm
+[submodule "extlib/tdc"]
+	path = extlib/tdc
+	url = https://github.com/herlez/tdc

@@ -29,6 +29,7 @@ uint64_t popcount(uint64_t const * const buffer) {
 }
 
 struct L12Entry {
+  L12Entry() : l1(0), l2_values(0) {}
   L12Entry(uint32_t const _l1, std::array<uint16_t, 3> const _l2)
     : l1(_l1), l2_values(0ULL |((uint32_t(0b1111111111) & _l2[2]) << 20) |
                          ((uint32_t(0b1111111111) & _l2[1]) << 10) |
@@ -59,18 +60,22 @@ class Rank {
 
   // Members for the structure
   size_t const l0_size_;
-  uint64_t * const l0_;
+  //uint64_t * const l0_;
+  std::vector<uint64_t> l0_;
 
   size_t const l12_size_;
-  L12Entry * const l12_;
+  //L12Entry * const l12_;
+  std::vector<L12Entry> l12_;
   
 public:
 
-  Rank(BitVector const& bv) : data_size_(bv.size_), data_(bv.data_),
+  Rank(BitVector const& bv) : data_size_(bv.size_), data_(bv.data_.data()),
       l0_size_((data_size_ / l0_word_size) + 1),
-      l0_(static_cast<uint64_t*>(operator new(l0_size_*sizeof(uint64_t)))),
+      //l0_(static_cast<uint64_t*>(operator new(l0_size_*sizeof(uint64_t)))),
+      l0_(std::vector<uint64_t>(l0_size_)),
       l12_size_((data_size_ / l1_word_size) + 1),
-      l12_(static_cast<L12Entry*>(operator new(l12_size_*sizeof(L12Entry)))) {
+      //l12_(static_cast<L12Entry*>(operator new(l12_size_*sizeof(L12Entry)))) 
+      l12_(std::vector<L12Entry>(l12_size_)) {
 
     l0_[0] = 0;
 
@@ -116,10 +121,10 @@ public:
     }
   }
 
-  ~Rank() {
-    delete[] l0_;
-    delete[] l12_;
-  }
+  // ~Rank() {
+  //   delete[] l0_;
+  //   delete[] l12_;
+  // }
 
   size_t rank0(size_t const pos) const {
     return (pos + 1) - rank1(pos);

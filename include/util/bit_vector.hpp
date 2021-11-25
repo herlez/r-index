@@ -26,23 +26,24 @@ class BitVector {
 
   size_t const bit_size_;
   size_t const size_;
-  uint64_t * const data_;
+  //uint64_t * const data_;
+  std::vector<uint64_t> data_;
   
 public:
 
   BitVector(size_t const size) : bit_size_(size),
 				 size_((bit_size_ >> 6) +
 				       ((bit_size_ % 512 > 0) ? 8 : 0)),
-				 data_(new uint64_t[size_]) {
-    std::fill(data_, data_ + size_, 0ULL);
+				 data_(std::vector<uint64_t>(size_)) {
+    //std::fill(data_.begin(), data_.end() + size_, 0ULL);
   }
 
-  ~BitVector() {
-    delete[] data_;
-  }
+  //~BitVector() {
+  //  delete[] data_;
+  //}
 
   BitAccess operator[](size_t const idx) {
-    return BitAccess(data_, idx);
+    return BitAccess(data_.data(), idx);
   }
 
   
