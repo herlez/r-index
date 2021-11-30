@@ -16,27 +16,25 @@ target_compile_options(wt PRIVATE -Wall -Wextra -pedantic -O3) #-Winline -save-t
 target_include_directories(wt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 #include prezza's r-index
-target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/r-index/internal)
+add_library(prezza_rindex INTERFACE)
+target_include_directories(prezza_rindex 
+INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/extlib/r-index/internal)
+target_link_libraries(bench prezza_rindex)
 
 #include libsais
-target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/libsais/src)
-target_include_directories(bwt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/libsais/src)
-target_include_directories(wt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/libsais/src)
-
 add_library(libsais64
   extlib/libsais/src/libsais64.c
   extlib/libsais/src/libsais.c 
 )
-target_include_directories(libsais64 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/r-index/internal)
+target_include_directories(libsais64 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/libsais/src)
 target_link_libraries(bench libsais64)
 target_link_libraries(bwt libsais64)
 target_link_libraries(wt libsais64)
 
 #include tdc
-target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/tdc/include)
 add_library(
   tdc_pred
-  extlib/tdc/src/pred/index.cpp
+  #extlib/tdc/src/pred/index.cpp
   extlib/tdc/src/vec/int_vector.cpp
   extlib/tdc/src/vec/allocate.cpp
 ) 
@@ -44,17 +42,15 @@ target_include_directories(tdc_pred PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/td
 target_link_libraries(bench tdc_pred)
 
 #include tlx
-target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/tlx/tlx)
 add_library(tlx
   extlib/tlx/tlx/cmdline_parser.cpp
   extlib/tlx/tlx/string/parse_si_iec_units.cpp
   extlib/tlx/tlx/die/core.cpp
 )
-target_include_directories(tlx PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/tlx/)
+target_include_directories(tlx PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/tlx/tlx
+                               PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/tlx)
 target_link_libraries(bench tlx)
-target_include_directories(wt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/tlx/)
 target_link_libraries(wt tlx)
-
 
 #SDSL
 target_include_directories(bench PUBLIC /usr/local/include)
@@ -63,11 +59,10 @@ target_link_libraries(bench sdsl divsufsort divsufsort64)
 
 #malloc_count
 add_library(malloc_count ${CMAKE_CURRENT_SOURCE_DIR}/extlib/malloc_count/malloc_count.c)
-target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/malloc_count)
+target_include_directories(malloc_count PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/malloc_count)
+
 target_link_libraries(bench malloc_count -ldl)
-target_include_directories(bwt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/malloc_count)
 target_link_libraries(bwt malloc_count -ldl)
-target_include_directories(wt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/malloc_count)
 target_link_libraries(wt malloc_count -ldl)
 
 #include divsufsort
@@ -77,6 +72,17 @@ target_link_libraries(bwt divsufsort64)
 #include pwm
 target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extlib/pwm/include)
 target_link_libraries(bench -fopenmp)
+
+#include pasta
+add_library(wt_pasta INTERFACE)
+target_include_directories(wt_pasta 
+INTERFACE extlib/wavelet_tree/
+INTERFACE extlib/wavelet_tree/extlib/utils
+INTERFACE extlib/wavelet_tree/extlib/bit_vector
+INTERFACE extlib/tlx)
+
+target_link_libraries(bench wt_pasta)
+target_link_libraries(wt wt_pasta)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
 

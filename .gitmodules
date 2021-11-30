@@ -19,3 +19,6 @@
 [submodule "extlib/tdc"]
 	path = extlib/tdc
 	url = https://github.com/herlez/tdc
+[submodule "extlib/cereal"]
+	path = extlib/cereal
+	url = https://github.com/USCiLab/cereal

@@ -19,7 +19,7 @@ struct bwt {
   bwt(std::string const& text) {
     last_row.resize(text.size());
     std::vector<int64_t> sa(text.size() + 100);
-    primary_index = libsais64_bwt(reinterpret_cast<const uint8_t*>(text.data()), reinterpret_cast<uint8_t*>(last_row.data()), sa.data(), text.size(), int64_t{101}, nullptr);
+    primary_index = libsais64_bwt(reinterpret_cast<const uint8_t*>(text.data()), reinterpret_cast<uint8_t*>(last_row.data()), sa.data(), text.size(), int64_t{100}, nullptr);
   }
 
   std::string to_text() const {
