@@ -143,7 +143,6 @@ int main(int argc, char* argv[]) {
   // cp.add_string('a', "algorithm", benchmark.algo, "Name of index");
 
   // cp.add_flag('c', "check", benchmark.check, "Check enumerated positions for pattern");
-
   cp.add_uint('r', "runs", benchmark.num_runs,
               "Number of runs that are used to "
               "report an average running time (default=5).");
@@ -153,6 +152,6 @@ int main(int argc, char* argv[]) {
   }
   std::cout << "r-index herlez------------------------------------------------------------------\n";
   benchmark.run<alx::r_index>("herlez");
-  std::cout << "r-index prezza------------------------------------------------------------------\n";
-  benchmark.run<ri::r_index>("prezza");
+  //std::cout << "r-index prezza------------------------------------------------------------------\n";
+  //benchmark.run<ri::r_index>("prezza");
 }
