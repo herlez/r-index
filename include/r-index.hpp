@@ -8,10 +8,13 @@
 #include <util/type_for_bytes.hpp>
 #include <vector>
 #include <wavelet_tree/wavelet_tree.hpp>
+#include "wt_naive.hpp"
+
 
 #include "bwt.hpp"
 #include "util/spacer.hpp"
 #include "util/timer.hpp"
+
 
 namespace alx {
 template <typename t_word = tdc::uint40_t>
@@ -90,8 +93,10 @@ class r_index {
   tdc::pred::Index<t_word> m_pred;           // small enough
   std::vector<unsigned char> m_run_letters;  // 1r B
 
-  using wm_type = decltype(pasta::make_wm<pasta::BitVector>(m_run_letters.begin(), m_run_letters.end(), 256));
-  std::unique_ptr<wm_type> m_run_letters_wm;
+  //using wm_type = decltype(pasta::make_wm<pasta::BitVector>(m_run_letters.begin(), m_run_letters.end(), 256));
+  //std::unique_ptr<wm_type> m_run_letters_wm;
+
+  alx::wavelet_tree m_run_letters_wt;
 
   std::array<std::vector<t_word>, 256> m_run_lengths;  // 8r B
   std::array<t_word, 257> m_char_sum;                  // 8s B
@@ -101,7 +106,8 @@ class r_index {
   }
 
   size_t run_rank(unsigned char c, size_t i) {
-    return m_run_letters_wm->rank(i+1, c);
+    return m_run_letters_wt.rank(i, c);
+    //return m_run_letters_wm->rank(i+1, c);
   }
 
   // Rank_c(BWT, pos) considering the terminal
@@ -176,7 +182,8 @@ class r_index {
       benchutil::timer timer;
       benchutil::spacer spacer;
 
-      m_run_letters_wm = std::make_unique<wm_type>(m_run_letters.begin(), m_run_letters.end(), 256);
+      //m_run_letters_wm = std::make_unique<wm_type>(m_run_letters.begin(), m_run_letters.end(), 256);
+      m_run_letters_wt = alx::wavelet_tree(m_run_letters);
 
       std::cout << " wt_time=" << timer.get_and_reset()
                 << " wt_mem_peak=" << spacer.get_peak()

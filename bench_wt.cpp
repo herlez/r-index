@@ -31,7 +31,7 @@ struct wt_bench {
                 << " mem_ds=" << spacer.get();
 
       // Benchmark queries
-      size_t num_queries = 10'000;
+      size_t num_queries = 1'000'000;
       timer.reset();
       std::vector<size_t> query_results;
       const size_t step = 2;
@@ -55,6 +55,7 @@ struct wt_bench {
                 << " ver_access=" << timer.get();
 
       // Verify Rank
+      /*
       errors = 0;
       timer.reset();
       for (size_t i = 0; i < query_results.size(); ++i) {
@@ -65,7 +66,7 @@ struct wt_bench {
           return;
           ++errors;
         }
-      }
+      }*/
 
       std::cout << " errors_rank=" << errors
                 << " ver_rank=" << timer.get()
@@ -95,7 +96,7 @@ struct wt_bench {
                 << " mem_ds=" << spacer.get();
 
       // Benchmark queries
-      size_t num_queries = 10'000;
+      size_t num_queries = 1'000'000;
       timer.reset();
       std::vector<size_t> query_results;
       const size_t step = 2;
@@ -120,6 +121,7 @@ struct wt_bench {
 
       // Verify Rank
       errors = 0;
+      /*
       timer.reset();
       for (size_t i = 0; i < query_results.size(); ++i) {
         size_t cor_result = std::count(bwt.begin(), bwt.begin() + i * step + 1, bwt[i * step / 2]);
@@ -129,6 +131,7 @@ struct wt_bench {
           ++errors;
         }
       }
+      */
 
       std::cout << " errors_rank=" << errors
                 << " ver_rank=" << timer.get()
