@@ -18,7 +18,10 @@
 	url = https://github.com/kurpicz/pwm
 [submodule "extlib/tdc"]
 	path = extlib/tdc
-	url = https://github.com/herlez/tdc
+	url = git@github.com:herlez/tdc.git
 [submodule "extlib/cereal"]
 	path = extlib/cereal
 	url = https://github.com/USCiLab/cereal
+[submodule "extlib/--force"]
+	path = extlib/--force
+	url = git@github.com:herlez/tdc.git
