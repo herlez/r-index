@@ -19,7 +19,7 @@ target_link_libraries(bwt_test gtest_main libsais64)
 # Predecessor Test
 add_executable(pred_test pred_test.cpp
 )
-target_link_libraries(pred_test tdc_pred gtest_main)
+target_link_libraries(pred_test tdc gtest_main)
 
 # Wavelet Tree Test
 add_executable(wt_test wt_test.cpp)
@@ -37,9 +37,12 @@ target_include_directories(rindex_test
         PUBLIC ../include
         PUBLIC ../extlib/pwm/include)
 target_compile_options(rindex_test PRIVATE -Wall -Wextra -pedantic -DNDEBUG)
-target_link_libraries(rindex_test gtest_main tdc_pred malloc_count -ldl -fopenmp libsais64 wt_pasta)
+target_link_libraries(rindex_test gtest_main tdc malloc_count -ldl -fopenmp libsais64 wt_pasta)
 
-
+# R-Index Test
+add_executable(uint40_test uint40_test.cpp)
+target_include_directories(uint40_test PUBLIC ../include)
+target_link_libraries(uint40_test gtest_main tdc malloc_count -ldl -fopenmp libsais64 wt_pasta)
 
 include(GoogleTest)
 gtest_discover_tests(bwt_test)
@@ -47,4 +50,5 @@ gtest_discover_tests(pred_test)
 gtest_discover_tests(wt_test)
 gtest_discover_tests(wt_pasta_test)
 gtest_discover_tests(rindex_test)
+gtest_discover_tests(uint40_test)
 

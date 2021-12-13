@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <assert.h>
 
 namespace alx {
 
@@ -29,7 +30,7 @@ struct bwt {
     return text;
   }
 
-  int to_file(std::string const& path) const {
+  int to_file(std::filesystem::path path) const {
     // Check whether bwt is already written
     if (std::filesystem::exists(path)) {
       return -1;
@@ -61,6 +62,24 @@ struct bwt {
     bwt.last_row.resize(size);
     in.seekg(8, std::ios::beg);
     in.read(bwt.last_row.data(), size);
+    return bwt;
+  }
+
+  template <typename SA_Container>
+  static bwt bwt_from_sa(SA_Container const& sa, std::string const& text) {
+    assert(sa.size() == text.size());
+    alx::bwt bwt;
+    bwt.last_row.reserve(text.size());
+    bwt.last_row.push_back(text.back()); // In first_row $ is first.
+  
+    for(size_t i{0}; i < sa.size(); ++i) {
+      if(sa[i] == 0) [[unlikely]]{
+        bwt.primary_index = i;
+      } else {
+        bwt.last_row.push_back(text[sa[i]-1]);
+      }
+    }
+    assert(bwt.size() == text.size());
     return bwt;
   }
 

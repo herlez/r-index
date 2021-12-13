@@ -66,7 +66,7 @@ TEST(BWT, FullAlphabet) {
 }
 
 TEST(BWT, ThreeBrothersRaw) {
-    std::string text = alx::io::read_file("/home/herlez/text/the_three_brothers.txt");
+    std::string text = alx::io::load_text("/home/herlez/text/the_three_brothers.txt");
 
     std::vector<int64_t> sa(text.size() + 100);
     std::vector<uint8_t> last_row;
@@ -75,6 +75,6 @@ TEST(BWT, ThreeBrothersRaw) {
 }
 
 TEST(BWT, ThreeBrothers) {
-    std::string text = alx::io::read_file("/home/herlez/text/the_three_brothers.txt");
+    std::string text = alx::io::load_text("/home/herlez/text/the_three_brothers.txt");
     alx::bwt bwt(text);
 }

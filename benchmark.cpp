@@ -7,127 +7,97 @@
 
 #include "r-index.hpp"
 #include "util/io.hpp"
-#include "util/timer.hpp"
 #include "util/spacer.hpp"
+#include "util/timer.hpp"
+
+enum benchmark_mode { from_text,
+                      from_bwt,
+                      from_index };
 
 class index_benchmark {
  public:
-  std::string const path = "/home/herlez/text/";
   std::string algo;
 
-  std::string text_path;
-  std::string bwt_path;
-  std::string index_path;
-  std::string queries_path;
+  benchmark_mode mode = benchmark_mode::from_text;
+  std::filesystem::path text_path;
+  std::filesystem::path bwt_path;
+  std::filesystem::path index_path;
 
-  bool check;
-  unsigned int num_runs;
+  std::filesystem::path queries_path;
+
+  unsigned int num_runs = 1;
 
  public:
   template <template <typename> typename t_index>
   void run(std::string const& algo) {
-    // Either
-    constexpr bool index_herlez = std::is_same<alx::r_index<uint64_t>, t_index<uint64_t>>::value;
-
     // Load text
-    std::string text_name = alx::io::get_text_name(text_path);
+    std::string text_name = text_path.filename();
     std::string text = alx::io::load_text(text_path);
 
-    // Load bwt
-    bwt_path = text_path + ".bwt";
-    /*
-    alx::bwt bwt;
-    if (index_herlez) {
-      bwt = alx::io::load_bwt(bwt_path, text);
-      // if (bwt.to_text() != text) {
-      //   std::cout << "BWT WRONG\n";
-      //   std::cout << "T:  " << text.substr(0, 30) << "\n"
-      //             << "L:  " << bwt.last_row.substr(0, 30) << " (" << bwt.primary_index << ")\n"
-      //             << "T': " << bwt.to_text().substr(0, 30) << "\n";
-      }
+    // Generate queries
+    std::vector<std::string> count_queries = alx::io::generate_queries(text, size_t{1} << 20, 10);
+    std::vector<size_t> count_results;
+
+    // Build index
+    t_index r_index;
+
+    std::cout << "RESULT"
+              << " algo=" << algo
+              << " mode=" << mode
+              << " text=" << text_name
+              << " size=" << text.size();
+    alx::benchutil::timer timer;
+    alx::benchutil::spacer spacer;
+    if (mode == benchmark_mode::from_text) {
+      r_index = t_index(text);
+    } else if (mode == benchmark_mode::from_bwt) {
+      bwt_path = text_path;
+      bwt_path += ".bwt";
+      alx::bwt bwt(bwt_path);
+      r_index = t_index(bwt);
+    } else if (mode == benchmark_mode::from_index) {
+      index_path = text_path;
+      index_path += (algo == "prezza") ? ".ri" : ".rix";
+      r_index = t_index(index_path);
     }
+
+    std::cout << " ds_time" << timer.get()
+              << " ds_mem=" << spacer.get()
+              << " ds_mempeak=" << spacer.get_peak();
+
+  
+    // Counting Queries
+    timer.reset();
+    for (std::string const& q : count_queries) {
+      count_results.push_back(r_index.occ(q));
+    }
+    std::cout << " c_time=" << timer.get()
+              << " c_sum=" << accumulate(count_results.begin(), count_results.end(), 0);
+
+    timer.reset();
+
+    /*
+    // Enumerating Queries
+    std::vector<sdsl::tVI> enumerate_results;
+    for(std::string const& q : count_queries) {
+      enumerate_results.push_back(r_index.locate_all(q)); //.size()
+    }
+    std::cout << "e_time=" << timer.get();
     */
 
-    // Load Queries
-    std::vector<std::string> queries = alx::io::generate_queries(text, size_t{1} << 20, 10);
-    // queries_path = text_path + "queries/" + text_name;
-    // std::vector<std::string> queries = load_queries(queries_path);
-
-    {
-      std::cout << "RESULT algo=" << algo;
-
-      // Build r-index
-      std::string index_path = path + "index/" + text_name;
-      std::string index_suffix = (algo == "prezza" ? ".ri" : ".rix");
-      t_index r_index;
-
-      alx::benchutil::timer timer;
-      alx::benchutil::spacer spacer;
-
-      if (std::filesystem::exists(index_path + index_suffix)) {
-        r_index.load_from_file(index_path + index_suffix);
-        std::cout << "#READ index from=" << index_path + index_suffix << " time=" << timer.get() << '\n';
-      } else {
-        if constexpr (index_herlez) {
-          //alx::bwt bwt = alx::io::load_bwt(bwt_path, text);
-          alx::bwt bwt(text);
-          r_index = t_index(bwt);
-          std::cout << " num_runs=" << r_index.num_runs();
-        } else {
-          r_index = t_index(text);
-          std::cout << " num_runs=" << r_index.number_of_runs();
+    /*
+        //Check
+        size_t num_errors = 0;
+        size_t matches = 0;
+        assert(count_results.size() == enumerate_results.size());
+        for (size_t i = 0; i < count_results.size(); ++i) {
+          matches += count_results[i];
+          if (count_results[i] != enumerate_results[i].size()) {
+            ++num_errors;
+          }
         }
-        
-        std::cout << " build_time=" << timer.get_and_reset()
-                  << " mem_peak=" << spacer.get_peak()
-                  << " mem_ds=" << spacer.get()
-                  << '\n';
-        r_index.save_to_file(index_path);
-        std::cout << "#WRITE index to=" << index_path + index_suffix << " time=" << timer.get_and_reset() << '\n';
-      }
-
-      // Counting queries
-      std::cout << "RESULT algo=" << algo;
-      std::vector<ulint> count_results;
-      timer.reset();
-      for (std::string& q : queries) {
-        auto result = r_index.occ(q);
-        count_results.push_back(result);
-      }
-      std::cout << " count_time=" << timer.get()
-                << " count_sum=" << accumulate(count_results.begin(), count_results.end(), 0);
-
-      // Enumerate queries
-      /*
-      std::vector<sdsl::tVI> enumerate_results;
-      timer.reset();
-      for (std::string& q : queries) {
-        enumerate_results.push_back(r_index.locate_all(q));  //.size()
-      }
-      std::cout << " enumerate_time=" << timer.get();
-
-      //Check
-      size_t num_errors = 0;
-      size_t matches = 0;
-      assert(count_results.size() == enumerate_results.size());
-      for (size_t i = 0; i < count_results.size(); ++i) {
-        matches += count_results[i];
-        if (count_results[i] != enumerate_results[i].size()) {
-          ++num_errors;
-        }
-      }
-      */
-
-      std::cout << " text=" << text_path
-                << " text_size=" << text.size()
-                //<< " num_queries=" << queries.size()
-                //<< " matches=" << matches
-                //<< " errors=" << num_errors
-                << "\n";
-    }
+    */
   }
-
- private:
 };
 
 int main(int argc, char* argv[]) {
@@ -137,7 +107,12 @@ int main(int argc, char* argv[]) {
   cp.set_description("Benchmark for text indices");
   cp.set_author("Alexander Herlez <alexander.herlez@tu-dortmund.de>\n");
 
-  cp.add_param_string("text", benchmark.text_path, "Path to the input text");
+  std::string text_path;
+  cp.add_param_string("text", text_path, "Path to the input text");
+
+  unsigned int mode;
+  cp.add_param_uint("mode", mode, "Mode: [0]:Text->Index [1]:BWT->Index [2]:Load Index from file");
+
   // cp.add_param_string("queries", benchmark.queries_path, "Path where queries");
 
   // cp.add_string('a', "algorithm", benchmark.algo, "Name of index");
@@ -150,8 +125,11 @@ int main(int argc, char* argv[]) {
   if (!cp.process(argc, argv)) {
     std::exit(EXIT_FAILURE);
   }
+  benchmark.text_path = text_path;
+  benchmark.mode = static_cast<benchmark_mode>(mode);
+
   std::cout << "r-index herlez------------------------------------------------------------------\n";
   benchmark.run<alx::r_index>("herlez");
-  //std::cout << "r-index prezza------------------------------------------------------------------\n";
-  //benchmark.run<ri::r_index>("prezza");
+  // std::cout << "r-index prezza------------------------------------------------------------------\n";
+  // benchmark.run<ri::r_index>("prezza");
 }

@@ -10,7 +10,7 @@ TEST(WaveletTreePasta, EmptyText) {
   auto wt = pasta::make_wt<pasta::BitVector>(text.begin(), text.end(), 256);
 }
 
-TEST(WavelWaveletTreePastaetTree, RankTest) {
+TEST(WaveletTreePasta, RankTest) {
   std::string str{"banana"};
   std::vector<uint8_t> text(str.begin(), str.end());
   auto wt = pasta::make_wt<pasta::BitVector>(text.begin(), text.end(), 256);

@@ -1,16 +1,19 @@
 #pragma once
 
+#include <array>
+#include <bitset>
+#include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
-#include "timer.hpp"
-#include <iostream>
-#include <filesystem>
+
 #include "bwt.hpp"
+#include "timer.hpp"
 
 namespace alx::io {
 
-std::vector<std::string> read_strings_line_by_line(std::string const& path) {
+std::vector<std::string> read_strings_line_by_line(std::filesystem::path const& path) {
   std::fstream stream(path.c_str(), std::ios::in);
   std::string cur_line;
 
@@ -26,19 +29,12 @@ std::vector<std::string> read_strings_line_by_line(std::string const& path) {
   return result;
 }
 
-std::string read_file(std::string const& path) {
-  std::ifstream stream(path.c_str());
+std::string load_text(std::filesystem::path const& path, bool timer_output = false) {
+  if (!std::filesystem::exists(path)) {
+    std::cout << "#FILE " << path << " not found.\n";
+    return std::string{};
+  }
 
-  return std::string((std::istreambuf_iterator<char>(stream)),
-                     (std::istreambuf_iterator<char>()));
-}
-
-std::string get_text_name(std::string path) {
-  auto last_slash = path.find_last_of('/');
-  return path.substr(last_slash + 1);
-}
-
-std::string load_text(std::string path) {
   benchutil::timer timer;
 
   std::ifstream t(path);
@@ -48,12 +44,43 @@ std::string load_text(std::string path) {
   t.seekg(0);
   t.read(&buffer[0], size);
 
-  std::cout << "#READ file from=" << path << " size=" << buffer.size() << " time=" << timer.get_and_reset() << '\n';
+  if (timer_output) {
+    std::cout << "#READ file from=" << path << " size=" << buffer.size() << " time=" << timer.get_and_reset() << '\n';
+  }
   // std::cout << " (" << buffer.size() / 1'000'000 << " MB) in " << timer.get_and_reset() << "ms.\n";
   return buffer;
 }
 
-alx::bwt load_bwt(std::string path, std::string const& text) {
+void save_text(std::filesystem::path const& path, std::string const& text, bool timer_output = false) {
+  benchutil::timer timer;
+
+  std::ofstream of(path);
+  of << text;
+
+  if (timer_output) {
+    std::cout << "#WRITE file to=" << path << " size=" << text.size() << " time=" << timer.get_and_reset() << '\n';
+  }
+}
+
+std::array<size_t, 256> histogram(std::string const& text) {
+  std::array<size_t, 256> hist;
+  hist.fill(0);
+  for (unsigned char c : text) {
+    ++hist[c];
+  }
+  return hist;
+}
+
+size_t alphabet_size(std::string const& text) {
+  std::array<size_t, 256> hist = histogram(text);
+  size_t alphabet_size = 0;
+  for (size_t a : hist) {
+    alphabet_size += (a > 0);
+  }
+  return alphabet_size;
+}
+
+alx::bwt load_bwt(std::filesystem::path const& path, std::string const& text) {
   benchutil::timer timer;
   alx::bwt bwt;
   if (std::filesystem::exists(path)) {
@@ -68,7 +95,7 @@ alx::bwt load_bwt(std::string path, std::string const& text) {
   return bwt;
 }
 
-std::vector<std::string> load_queries(std::string path) {
+std::vector<std::string> load_queries(std::filesystem::path const& path) {
   benchutil::timer timer;
 
   std::vector<std::string> queries;

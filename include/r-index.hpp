@@ -32,7 +32,6 @@ class r_index {
   }
 
   r_index(std::string const& text) {
-    std::cout << "DETAILS r-index";
     benchutil::timer timer;
     alx::bwt input_bwt(text);
     std::cout << " time_bwt=" << timer.get_and_reset();
@@ -45,6 +44,9 @@ class r_index {
     build_structure(bwt);
   }
 
+  r_index(std::filesystem::path const& file) {
+
+  }
   size_t occ(std::string const& pattern, bool debug = false) {
     unsigned char c = pattern.back();
     size_t span_start = m_char_sum[c];
@@ -158,10 +160,9 @@ class r_index {
       for (auto& a : m_run_lengths) {
         a.shrink_to_fit();
       }
-      std::cout << " runs_time=" << timer.get_and_reset()
-                << " runs_mem_peak=" << spacer.get_peak()
-                << " runs_mem_ds=" << spacer.get()
-                << '\n';
+      std::cout << " \nruns_time=" << timer.get_and_reset()
+                << " runs_mem=" << spacer.get()
+                << " runs_mempeak=" << spacer.get_peak();
     }
 
     // Build predecessor data structure
@@ -170,10 +171,9 @@ class r_index {
       benchutil::spacer spacer;
 
       m_pred = tdc::pred::Index<t_word>(m_run_starts.data(), m_run_starts.size(), 7);
-      std::cout << " pred_time=" << timer.get_and_reset()
-                << " pred_mem_peak=" << spacer.get_peak()
-                << " pred_mem_ds=" << spacer.get()
-                << '\n';
+      std::cout << " \npred_time=" << timer.get_and_reset()
+                << " pred_mem=" << spacer.get()
+                << " pred_mempeak=" << spacer.get_peak();
       // verify_pred();
     }
 
@@ -185,10 +185,9 @@ class r_index {
       //m_run_letters_wm = std::make_unique<wm_type>(m_run_letters.begin(), m_run_letters.end(), 256);
       m_run_letters_wt = alx::wavelet_tree(m_run_letters);
 
-      std::cout << " wt_time=" << timer.get_and_reset()
-                << " wt_mem_peak=" << spacer.get_peak()
-                << " wt_mem_ds=" << spacer.get()
-                << '\n';
+      std::cout << " \nwt_time=" << timer.get_and_reset()
+                << " wt_mem=" << spacer.get()
+                << " wt_mempeak=" << spacer.get_peak();
       // verify_wt();
       // verify_rank(input_bwt);
     }
