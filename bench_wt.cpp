@@ -1,7 +1,6 @@
 #include <array>
 #include <wavelet_tree/wavelet_tree.hpp>
 
-#include "bwt.hpp"
 #include "util/io.hpp"
 #include "util/spacer.hpp"
 #include "util/timer.hpp"

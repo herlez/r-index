@@ -35,7 +35,7 @@ struct bwt {
     if (std::filesystem::exists(path)) {
       return -1;
     }
-
+    std::cout << "Write to " << path;
     // Write bwt
     std::ofstream out(path, std::ios::binary);
     //out << primary_index;

@@ -5,10 +5,9 @@
 #include <string>
 #include <tdc/pred/index.hpp>
 #include <tdc/uint/uint40.hpp>
-#include <util/type_for_bytes.hpp>
 #include <vector>
 #include <wavelet_tree/wavelet_tree.hpp>
-#include "wt_naive.hpp"
+//#include "wt_naive.hpp"
 
 
 #include "bwt.hpp"
@@ -26,7 +25,6 @@ class r_index {
       arr.push_back(0);
     }
     m_char_sum.fill(0);
-    m_text_size = 0;
 
     m_bwt_primary_index = 0;
   }
@@ -35,18 +33,30 @@ class r_index {
     benchutil::timer timer;
     alx::bwt input_bwt(text);
     std::cout << " time_bwt=" << timer.get_and_reset();
-    m_text_size = input_bwt.size();
     m_bwt_primary_index = input_bwt.primary_index;
     build_structure(input_bwt);
   }
 
-  r_index(alx::bwt const& bwt) : m_text_size(bwt.size()), m_bwt_primary_index(bwt.primary_index) {
+  r_index(alx::bwt const& bwt) : m_bwt_primary_index(bwt.primary_index) {
     build_structure(bwt);
   }
 
   r_index(std::filesystem::path const& file) {
 
   }
+
+  size_t text_size() const {
+    if(m_run_starts.empty()) { return 0;}
+
+    unsigned char last_run_char = m_run_letters.back();
+    auto const& last_char_run_lengths = m_run_lengths[last_run_char];
+    size_t last_run_length = last_char_run_lengths.back() - last_char_run_lengths[last_char_run_lengths.size()-2];
+    return m_run_starts.back() + last_run_length;
+  }
+  size_t num_runs() {
+    return m_run_starts.size();
+  }
+
   size_t occ(std::string const& pattern, bool debug = false) {
     unsigned char c = pattern.back();
     size_t span_start = m_char_sum[c];
@@ -77,10 +87,6 @@ class r_index {
     return span_end - span_start;
   }
 
-  size_t num_runs() {
-    return m_run_starts.size();
-  }
-
   std::vector<size_t> locate_all(std::string const& pattern) {
     return std::vector<size_t>(pattern.length());
   }
@@ -89,16 +95,15 @@ class r_index {
   void save_to_file(std::string path) {}
 
  private:
-  size_t m_text_size;
   size_t m_bwt_primary_index;
   std::vector<t_word> m_run_starts;          // 8r B
   tdc::pred::Index<t_word> m_pred;           // small enough
   std::vector<unsigned char> m_run_letters;  // 1r B
 
-  //using wm_type = decltype(pasta::make_wm<pasta::BitVector>(m_run_letters.begin(), m_run_letters.end(), 256));
-  //std::unique_ptr<wm_type> m_run_letters_wm;
+  using wm_type = decltype(pasta::make_wm<pasta::BitVector>(m_run_letters.begin(), m_run_letters.end(), 256));
+  std::unique_ptr<wm_type> m_run_letters_wm;
 
-  alx::wavelet_tree m_run_letters_wt;
+  //alx::wavelet_tree m_run_letters_wt;
 
   std::array<std::vector<t_word>, 256> m_run_lengths;  // 8r B
   std::array<t_word, 257> m_char_sum;                  // 8s B
@@ -108,8 +113,8 @@ class r_index {
   }
 
   size_t run_rank(unsigned char c, size_t i) {
-    return m_run_letters_wt.rank(i, c);
-    //return m_run_letters_wm->rank(i+1, c);
+    //return m_run_letters_wt.rank(i, c);
+    return m_run_letters_wm->rank(i+1, c);
   }
 
   // Rank_c(BWT, pos) considering the terminal
@@ -117,7 +122,6 @@ class r_index {
     if (pos >= m_bwt_primary_index) {
       --pos;
     }
-    // pos = std::min(pos, m_text_size - 1);
     size_t kth_run = pred(pos);
     size_t run_start = m_run_starts[kth_run];
     size_t num_c_run = run_rank(c, kth_run - 1);
@@ -182,8 +186,8 @@ class r_index {
       benchutil::timer timer;
       benchutil::spacer spacer;
 
-      //m_run_letters_wm = std::make_unique<wm_type>(m_run_letters.begin(), m_run_letters.end(), 256);
-      m_run_letters_wt = alx::wavelet_tree(m_run_letters);
+      m_run_letters_wm = std::make_unique<wm_type>(m_run_letters.begin(), m_run_letters.end(), 256);
+      //m_run_letters_wt = alx::wavelet_tree(m_run_letters);
 
       std::cout << " \nwt_time=" << timer.get_and_reset()
                 << " wt_mem=" << spacer.get()
@@ -220,7 +224,7 @@ class r_index {
 
   bool verify_pred() {
     benchutil::timer timer;
-    if (m_run_starts.size() == 0 && m_text_size == 0) {
+    if (m_run_starts.empty()) {
       return true;
     }
 
@@ -235,7 +239,7 @@ class r_index {
           return false;
         }
       }
-      for (size_t j = m_run_starts.back(); j < m_text_size; ++j) {
+      for (size_t j = m_run_starts.back(); j < text_size(); ++j) {
         if (pred(j) != m_run_starts.size() - 1) {
           std::cout << "\nPredecessor of " << j << ": " << pred(j) << " should be " << m_run_starts.size() - 1 << std::endl;
           return false;

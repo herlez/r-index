@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "bwt.hpp"
 #include "timer.hpp"
 
 namespace alx::io {
@@ -78,21 +77,6 @@ size_t alphabet_size(std::string const& text) {
     alphabet_size += (a > 0);
   }
   return alphabet_size;
-}
-
-alx::bwt load_bwt(std::filesystem::path const& path, std::string const& text) {
-  benchutil::timer timer;
-  alx::bwt bwt;
-  if (std::filesystem::exists(path)) {
-    bwt = bwt.load_from_file(path);
-    std::cout << "#READ BWT from=" << path << " size=" << bwt.size() << " time=" << timer.get_and_reset() << '\n';
-  } else {
-    bwt = alx::bwt(text);
-    std::cout << "#CALCULATE BWT size=" << bwt.size() << " time=" << timer.get_and_reset() << '\n';
-    bwt.to_file(path);
-    std::cout << "#STORE BWT at=" << path << " size=" << bwt.size() << " time=" << timer.get_and_reset() << '\n';
-  }
-  return bwt;
 }
 
 std::vector<std::string> load_queries(std::filesystem::path const& path) {

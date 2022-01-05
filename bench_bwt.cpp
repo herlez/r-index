@@ -1,6 +1,7 @@
 #include <divsufsort64.h>
 #include <libsais64.h>
 
+#include "bwt.hpp"
 #include "util/io.hpp"
 #include "util/spacer.hpp"
 #include "util/timer.hpp"
