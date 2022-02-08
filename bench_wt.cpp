@@ -4,15 +4,11 @@
 #include "util/io.hpp"
 #include "util/spacer.hpp"
 #include "util/timer.hpp"
-#include "wt_naive.hpp"
 
-enum benchmark_algorithm { naive_wt,
-                           pasta_wt };
+enum benchmark_algorithm { pasta_wt };
 
 constexpr const char* algo_name(benchmark_algorithm algo) {
   switch (algo) {
-    case benchmark_algorithm::naive_wt:
-      return "naive_wt";
     case benchmark_algorithm::pasta_wt:
       return "pasta_wt";
   }
@@ -43,26 +39,7 @@ struct wt_bench {
     }
     std::vector<size_t> rank_results(rank_queries.size());
 
-    if (algo == benchmark_algorithm::naive_wt) {
-      // Build naive_wt
-      alx::benchutil::spacer spacer;
-      alx::benchutil::timer timer;
-
-      alx::wavelet_tree wt(text);
-
-      std::cout << " ds_time=" << timer.get()
-                << " ds_mem=" << spacer.get()
-                << " ds_mempeak=" << spacer.get_peak();
-
-      timer.reset();
-      for (size_t i{0}; i < rank_queries.size(); ++i) {
-        std::pair<size_t, unsigned char> q = rank_queries[i];
-        rank_results[i] = wt.rank(q.first, q.second);
-      }
-      std::cout << " r_time=" << timer.get()
-                << " r_sum=" << accumulate(rank_results.begin(), rank_results.end(), 0);
-
-    } else if (algo == benchmark_algorithm::pasta_wt) {
+   if (algo == benchmark_algorithm::pasta_wt) {
       // Build pasta_wt
       alx::benchutil::spacer spacer;
       alx::benchutil::timer timer;

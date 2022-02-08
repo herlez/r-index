@@ -30,9 +30,6 @@ SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/extlib/wavelet_tree/extlib/utils
 SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/extlib/wavelet_tree/extlib/bit_vector
 SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/extlib/tlx)
 
-add_library(pwm INTERFACE)
-target_include_directories(pwm INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/extlib/pwm/include)
-
 #include prezza's r-index
 add_library(prezza_rindex INTERFACE)
 target_include_directories(prezza_rindex INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/extlib/r-index/internal
@@ -40,8 +37,15 @@ INTERFACE /usr/local/include)
 target_link_directories(prezza_rindex INTERFACE /usr/local/lib)
 target_link_libraries(prezza_rindex INTERFACE sdsl divsufsort divsufsort64)
 
+add_library(subsampled_rindex INTERFACE)
+target_include_directories(subsampled_rindex 
+INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/extlib/sr-index/include)
+
+
 add_library(alx_rindex INTERFACE)
 target_link_libraries(alx_rindex INTERFACE alx_bwt tdc pasta_wt malloc_count)
+
+
 
 #include malloc_count
 add_library(malloc_count ${CMAKE_CURRENT_SOURCE_DIR}/extlib/malloc_count/malloc_count.c)

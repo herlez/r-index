@@ -19,9 +19,6 @@ target_link_libraries(bwt_test gtest_main alx_bwt)
 add_executable(pred_test pred_test.cpp)
 target_link_libraries(pred_test tdc gtest_main tdc)
 
-# Wavelet Tree Test
-add_executable(wt_test wt_test.cpp)
-target_link_libraries(wt_test gtest_main -fopenmp pwm)
 
 # Wavelet Tree Pasta Test
 add_executable(wt_pasta_test wt_pasta_test.cpp)
@@ -29,7 +26,7 @@ target_link_libraries(wt_pasta_test gtest_main -fopenmp pasta_wt)
 
 # R-Index Test
 add_executable(rindex_test rindex_test.cpp)
-target_link_libraries(rindex_test gtest_main alx_rindex -fopenmp)
+target_link_libraries(rindex_test gtest_main alx_rindex prezza_rindex subsampled_rindex)
 
 # tdc::uint40_t Test
 add_executable(uint40_test uint40_test.cpp)
@@ -39,7 +36,6 @@ target_link_libraries(uint40_test gtest_main tdc malloc_count)
 include(GoogleTest)
 gtest_discover_tests(bwt_test)
 gtest_discover_tests(pred_test)
-gtest_discover_tests(wt_test)
 gtest_discover_tests(wt_pasta_test)
 gtest_discover_tests(rindex_test)
 gtest_discover_tests(uint40_test)

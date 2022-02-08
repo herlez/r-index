@@ -7,8 +7,6 @@
 #include <tdc/uint/uint40.hpp>
 #include <vector>
 #include <wavelet_tree/wavelet_tree.hpp>
-//#include "wt_naive.hpp"
-
 
 #include "bwt.hpp"
 #include "util/spacer.hpp"
@@ -20,9 +18,9 @@ template <typename t_word = tdc::uint40_t>
 class r_index {
  public:
   r_index() {
-    for (auto& arr : m_run_lengths) {
-      arr.clear();
-      arr.push_back(0);
+    for (auto& vec : m_run_lengths) {
+      vec.clear();
+      vec.push_back(0);
     }
     m_char_sum.fill(0);
 
@@ -96,7 +94,7 @@ class r_index {
 
  private:
   size_t m_bwt_primary_index;
-  std::vector<t_word> m_run_starts;          // 8r B
+  std::vector<t_word> m_run_starts;          // 5r B
   tdc::pred::Index<t_word> m_pred;           // small enough
   std::vector<unsigned char> m_run_letters;  // 1r B
 
@@ -105,8 +103,8 @@ class r_index {
 
   //alx::wavelet_tree m_run_letters_wt;
 
-  std::array<std::vector<t_word>, 256> m_run_lengths;  // 8r B
-  std::array<t_word, 257> m_char_sum;                  // 8s B
+  std::array<std::vector<t_word>, 256> m_run_lengths;  // 5r B
+  std::array<t_word, 257> m_char_sum;                  // 5s B
 
   size_t pred(size_t i) {
     return m_pred.predecessor(m_run_starts.data(), m_run_starts.size(), i).pos;

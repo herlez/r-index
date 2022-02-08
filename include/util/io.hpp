@@ -108,4 +108,62 @@ std::vector<std::string> generate_queries(std::string const& text, size_t num, s
   return queries;
 }
 
+size_t get_number_of_patterns(std::string header) {
+  size_t start_pos = header.find("number=");
+  if (start_pos == std::string::npos || start_pos + 7 >= header.size()) {
+    return -1;
+  }
+  start_pos += 7;
+
+  size_t end_pos = header.substr(start_pos).find(" ");
+  if (end_pos == std::string::npos) {
+    return -2;
+  }
+
+  return std::atoi(header.substr(start_pos).substr(0, end_pos).c_str());
+}
+
+size_t get_patterns_length(std::string header) {
+  size_t start_pos = header.find("length=");
+  if (start_pos == std::string::npos || start_pos + 7 >= header.size()) {
+    return -1;
+  }
+
+  start_pos += 7;
+
+  size_t end_pos = header.substr(start_pos).find(" ");
+  if (end_pos == std::string::npos) {
+    return -2;
+  }
+
+  size_t n = std::atoi(header.substr(start_pos).substr(0, end_pos).c_str());
+
+  return n;
+}
+
+std::vector<std::string> load_patterns(std::filesystem::path path) {
+  std::vector<std::string> patterns;
+  std::ifstream ifs(path);
+
+  std::string header;
+  std::getline(ifs, header);
+
+  size_t n = get_number_of_patterns(header);
+  size_t m = get_patterns_length(header);
+
+  // extract patterns from file and search them in the index
+  for (size_t i = 0; i < n; ++i) {
+    std::string p = std::string();
+
+    for (size_t j = 0; j < m; ++j) {
+      char c;
+      ifs.get(c);
+      p += c;
+    }
+    patterns.push_back(p);
+  }
+
+  return patterns;
+}
+
 }  // namespace alx::io
