@@ -164,6 +164,6 @@ int main(int argc, char* argv[]) {
 
   std::cout << "r-index herlez------------------------------------------------------------------\n";
   benchmark.run<alx::r_index>("herlez");
-  //std::cout << "r-index prezza------------------------------------------------------------------\n";
-  //benchmark.run<ri::r_index>("prezza");
+  std::cout << "r-index prezza------------------------------------------------------------------\n";
+  benchmark.run<ri::r_index>("prezza");
 }
