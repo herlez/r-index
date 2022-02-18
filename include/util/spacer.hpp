@@ -1,7 +1,6 @@
 #pragma once
 
 #include <malloc_count.h>
-#include <stack_count.h>
 
 namespace alx::benchutil {
 
