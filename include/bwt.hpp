@@ -23,6 +23,32 @@ struct bwt {
     primary_index = libsais64_bwt(reinterpret_cast<const uint8_t*>(text.data()), reinterpret_cast<uint8_t*>(last_row.data()), sa.data(), text.size(), int64_t{100}, nullptr);
   }
 
+  bwt(std::filesystem::path const& last_row_path, std::filesystem::path const& primary_index_path) {
+    // If file does not exist, return empty string.
+    if (!std::filesystem::exists(last_row_path)) {
+      std::cout << last_row_path << " does not exist.";
+      return;
+    }
+    if (!std::filesystem::exists(primary_index_path)) {
+      std::cout << primary_index_path << " does not exist.";
+      return;
+    }
+
+    
+    // Read primary index.
+    {
+      std::ifstream in(primary_index_path, std::ios::binary);
+      in.read(reinterpret_cast<char*>(&primary_index), sizeof(primary_index));
+    }
+    // Read last row.
+    {
+      size_t size = std::filesystem::file_size(last_row_path);
+      last_row.resize(size);
+      std::ifstream in(last_row_path, std::ios::binary);
+      in.read(last_row.data(), size);
+    }
+  }
+
   std::string to_text() const {
     std::string text(last_row.size(), ' ');
     std::vector<int64_t> sa(text.size() + 1);
@@ -44,24 +70,31 @@ struct bwt {
     return 0;
   }
 
-  static bwt load_from_file(std::string const& path) {
-    // If file does not exist, return empty string
-    if (!std::filesystem::exists(path)) {
-      return std::string{};
-    }
-    // Read bwt
+  static bwt load_from_file(std::filesystem::path const& last_row_path, std::filesystem::path const& primary_index_path) {
     alx::bwt bwt;
-    std::ifstream in(path, std::ios::binary);
-    in.read(reinterpret_cast<char *>(&bwt.primary_index), sizeof(bwt.primary_index));
-    //in >> bwt.primary_index;
+    // If file does not exist, return empty string.
+    if (!std::filesystem::exists(last_row_path)) {
+      std::cout << last_row_path << " does not exist.";
+      return bwt;
+    }
+    if (!std::filesystem::exists(primary_index_path)) {
+      std::cout << primary_index_path << " does not exist.";
+      return bwt;
+    }
 
-    in.seekg(8, std::ios::beg);
-    std::streampos begin = in.tellg();
-    in.seekg(0, std::ios::end);
-    size_t size = in.tellg() - begin;
-    bwt.last_row.resize(size);
-    in.seekg(8, std::ios::beg);
-    in.read(bwt.last_row.data(), size);
+    
+    // Read primary index.
+    {
+      std::ifstream in(primary_index_path, std::ios::binary);
+      in.read(reinterpret_cast<char*>(&bwt.primary_index), sizeof(bwt.primary_index));
+    }
+    // Read last row.
+    {
+      size_t size = std::filesystem::file_size(last_row_path);
+      bwt.last_row.resize(size);
+      std::ifstream in(last_row_path, std::ios::binary);
+      in.read(bwt.last_row.data(), size);
+    }
     return bwt;
   }
 

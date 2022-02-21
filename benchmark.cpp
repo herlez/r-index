@@ -20,46 +20,34 @@ class index_benchmark {
   std::string algo;
 
   benchmark_mode mode = benchmark_mode::from_text;
-  std::filesystem::path text_path;
-  std::filesystem::path bwt_path;
-  std::filesystem::path index_path;
-
+  std::filesystem::path input_path;
   std::filesystem::path patterns_path;
-  size_t num_queries{std::numeric_limits<size_t>::max()};
-
-  unsigned int num_runs = 1;
+  size_t num_patterns{std::numeric_limits<size_t>::max()};
 
  public:
   template <template <typename> typename t_index>
   void run(std::string const& algo) {
     // Load text
-    std::string text_name = text_path.filename();
-    std::string text = alx::io::load_text(text_path);
+    std::string text_name = input_path.filename();
+    std::string text = alx::io::load_text(input_path);
 
-    // Generate queries
-    //std::vector<std::string> count_queries = alx::io::load_patterns(text, size_t{1} << 20, 10);
-    
-    std::vector<std::string> count_queries = alx::io::load_patterns(patterns_path);
-    if(num_queries != std::numeric_limits<size_t>::max()) {
-      count_queries.resize(num_queries);
-    } else {
-      num_queries = count_queries.size();
+    // Load queries
+    std::vector<std::string> patterns;
+    {
+        alx::benchutil::spacer spacer;
+        alx::benchutil::timer timer;
+
+        patterns = alx::io::load_patterns(patterns_path, num_patterns);
+        assert(patterns.size() <= num_patterns);
+
+        std::cout << "patterns_load_time=" << timer.get() 
+                          << " mem=" << spacer.get() 
+                          << " patterns_path=" << patterns_path 
+                          << " patterns_num=" << patterns.size();
+        if (patterns.size() != 0) {
+          std::cout << " patterns_len=" << patterns.front().size() << "\n";
+        }
     }
-    /*
-    count_queries[0] = "T";
-    count_queries[1] = "TT";
-    count_queries[2] = "ATT";
-    count_queries[3] = "TATT";
-    count_queries[4] = "GTATT";
-    count_queries[5] = "AGTATT";
-    count_queries[6] = "TAGTATT";
-    count_queries[7] = "TTAGTATT";
-    count_queries[8] = "TTTAGTATT";
-    count_queries[9] = "ATTTAGTATT";
-    count_queries.resize(10);
-    */
-
-    std::vector<size_t> count_results;
 
     // Build index
     t_index r_index;
@@ -75,13 +63,16 @@ class index_benchmark {
       r_index = t_index(text);
     } else if (mode == benchmark_mode::from_bwt) {
       if constexpr (std::is_same_v<decltype(t_index()), decltype(alx::r_index())>) {
-        bwt_path = text_path;
-        bwt_path += ".bwt";
-        alx::bwt bwt(bwt_path);
+        std::filesystem::path last_row_path = input_path;
+        last_row_path += ".bwt";
+        std::filesystem::path primary_index_path = input_path;
+        primary_index_path += ".prm";
+
+        alx::bwt bwt(last_row_path, primary_index_path);
         r_index = t_index(bwt);
       }
     } else if (mode == benchmark_mode::from_index) {
-      index_path = text_path;
+      std::filesystem::path index_path = input_path;
       index_path += (algo == "prezza") ? ".ri" : ".rix";
       r_index = t_index(index_path);
     }
@@ -91,8 +82,9 @@ class index_benchmark {
               << " ds_mempeak=" << spacer.get_peak();
 
     // Counting Queries
+    std::vector<size_t> count_results;
     timer.reset();
-    for (std::string const& q : count_queries) {
+    for (std::string const& q : patterns) {
       count_results.push_back(r_index.occ(q));
     }
     //for (auto i: count_results)
@@ -135,8 +127,8 @@ int main(int argc, char* argv[]) {
   cp.set_description("Benchmark for text indices");
   cp.set_author("Alexander Herlez <alexander.herlez@tu-dortmund.de>\n");
 
-  std::string text_path;
-  cp.add_param_string("text", text_path, "Path to the input text");
+  std::string input_path;
+  cp.add_param_string("input_path", input_path, "Path to the input text/BWT/index without file suffix. Enter \"~/text/english\" to load \"~/text/english.bwt\"");
 
   unsigned int mode;
   cp.add_param_uint("mode", mode, "Mode: [0]:Text->Index [1]:BWT->Index [2]:Load Index from file");
@@ -144,21 +136,13 @@ int main(int argc, char* argv[]) {
   std::string patterns_path;
   cp.add_param_string("patterns_path", patterns_path, "Path to pizza&chili patterns");
 
-  // cp.add_string('a', "algorithm", benchmark.algo, "Name of index");
-
-  // cp.add_flag('c', "check", benchmark.check, "Check enumerated positions for pattern");
-  cp.add_uint('r', "runs", benchmark.num_runs,
-              "Number of runs that are used to "
-              "report an average running time (default=5).");
-
-  cp.add_size_t('q', "num_queries", benchmark.num_queries,
+  cp.add_size_t('q', "num_patterns", benchmark.num_patterns,
               "Number of queries (default=all)");
-              
 
   if (!cp.process(argc, argv)) {
     std::exit(EXIT_FAILURE);
   }
-  benchmark.text_path = text_path;
+  benchmark.input_path = input_path;
   benchmark.patterns_path = patterns_path;
   benchmark.mode = static_cast<benchmark_mode>(mode);
 
