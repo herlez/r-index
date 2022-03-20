@@ -19,9 +19,6 @@
 [submodule "extlib/cereal"]
 	path = extlib/cereal
 	url = https://github.com/USCiLab/cereal
-[submodule "extlib/sr-index"]
-	path = extlib/sr-index
-	url = https://github.com/duscob/sr-index
 [submodule "extlib/wavelet_tree"]
 	path = extlib/wavelet_tree
 	url = git@github.com:pasta-toolbox/wavelet_tree.git
