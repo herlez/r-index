@@ -10,12 +10,14 @@ namespace alx {
 class r_index_prezza {
  public:
   r_index_prezza() {
-    m_index = ri::r_index<>(" ");
+    std::string empty = " ";
+    m_index = ri::r_index<>(empty);
   }
 
-  r_index_prezza(std::string const& text) {
+  r_index_prezza(std::string& text) {
     if(text.size() == 0) {
-      m_index = ri::r_index<>(" ");
+      std::string empty = " ";
+      m_index = ri::r_index<>(empty);
       return;
     }
     m_index = ri::r_index<>(text);
@@ -30,7 +32,7 @@ class r_index_prezza {
       m_index.serialize(output_stream);
   }
 
-  size_t occ(std::string const& pattern) {
+  size_t occ(std::string& pattern) {
     assert (pattern.size() != 0);
     //assert pattern is free of \0 and \1
     return m_index.occ(pattern);

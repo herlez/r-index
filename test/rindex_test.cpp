@@ -20,14 +20,16 @@ size_t naive_occ(std::string const& text, std::string const& pattern) {
 template <typename t_index>
 void test_default_constructor() {
   t_index index;
-  EXPECT_EQ(index.occ("Example"), 0);
+  std::string pat = "Example";
+  EXPECT_EQ(index.occ(pat), 0);
 }
 
 template <typename t_index>
 void test_empty_text() {
   std::string text{""};
   t_index index(text);
-  EXPECT_EQ(index.occ("Example"), 0);
+  std::string pat = "Example";
+  EXPECT_EQ(index.occ(pat), 0);
 }
 
 template <typename t_index>

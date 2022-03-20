@@ -30,23 +30,35 @@ class index_benchmark {
     // Load text
     std::string text_name = input_path.filename();
     std::string text = alx::io::load_text(input_path);
+  
+    if constexpr(std::is_same_v<decltype(t_index()), decltype(ri::r_index())>) {
+      assert(text.back() == '\00');
+      text.pop_back(); //prezza index can't handle terminal
+    }
 
     // Load queries
     std::vector<std::string> patterns;
     {
-        alx::benchutil::spacer spacer;
-        alx::benchutil::timer timer;
+      alx::benchutil::spacer spacer;
+      alx::benchutil::timer timer;
 
-        patterns = alx::io::load_patterns(patterns_path, num_patterns);
-        assert(patterns.size() <= num_patterns);
+      patterns = alx::io::load_patterns(patterns_path, num_patterns);
+      assert(patterns.size() <= num_patterns);
 
-        std::cout << "patterns_load_time=" << timer.get() 
-                          << " mem=" << spacer.get() 
-                          << " patterns_path=" << patterns_path 
-                          << " patterns_num=" << patterns.size();
-        if (patterns.size() != 0) {
-          std::cout << " patterns_len=" << patterns.front().size() << "\n";
+      std::cout << "patterns_load_time=" << timer.get()
+                << " mem=" << spacer.get()
+                << " patterns_path=" << patterns_path
+                << " patterns_num=" << patterns.size();
+      if (patterns.size() != 0) {
+        std::cout << " patterns_len=" << patterns.front().size() << "\n";
+      }
+
+      for(auto const& p : patterns) {
+        if(p.find('\00') != p.npos) {
+          std::cout << "Pattern contains terminal!\n";
+          return;
         }
+      }
     }
 
     // Build index
@@ -72,23 +84,23 @@ class index_benchmark {
         r_index = t_index(bwt);
       }
     } else if (mode == benchmark_mode::from_index) {
-      std::filesystem::path index_path = input_path;
-      index_path += (algo == "prezza") ? ".ri" : ".rix";
-      r_index = t_index(index_path);
+      //std::filesystem::path index_path = input_path;
+      //index_path += (algo == "prezza") ? ".ri" : ".rix";
+      //r_index = t_index(index_path);
     }
 
-    std::cout << " ds_time" << timer.get()
+    std::cout << " ds_time=" << timer.get()
               << " ds_mem=" << spacer.get()
               << " ds_mempeak=" << spacer.get_peak();
 
     // Counting Queries
     std::vector<size_t> count_results;
     timer.reset();
-    for (std::string const& q : patterns) {
+    for (std::string& q : patterns) {
       count_results.push_back(r_index.occ(q));
     }
-    //for (auto i: count_results)
-    //std::cout << i << ' ';
+    // for (auto i: count_results)
+    // std::cout << i << ' ';
 
     std::cout << " c_time=" << timer.get()
               << " c_sum=" << accumulate(count_results.begin(), count_results.end(), 0)
@@ -137,7 +149,7 @@ int main(int argc, char* argv[]) {
   cp.add_param_string("patterns_path", patterns_path, "Path to pizza&chili patterns");
 
   cp.add_size_t('q', "num_patterns", benchmark.num_patterns,
-              "Number of queries (default=all)");
+                "Number of queries (default=all)");
 
   if (!cp.process(argc, argv)) {
     std::exit(EXIT_FAILURE);
